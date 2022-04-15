@@ -1,0 +1,11 @@
+__pycache__
+venv
+.idea
+*.png
+*.jpg
+*.jpeg
+*.bmp
+*.yaml
+obrazki_do_testow
+ziemowit
+statistics.py
