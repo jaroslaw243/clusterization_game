@@ -1,2 +1,2 @@
 # Description
-Game-theoretic clusterization algorithm
+Game-theoretic clusterization algorithm.
