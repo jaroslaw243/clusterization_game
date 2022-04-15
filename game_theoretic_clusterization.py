@@ -4,11 +4,12 @@ import cv2
 
 
 class GameTheoreticClusterization:
-    def __init__(self, image_path, sigma=1, load_image_at_start=True):
+    def __init__(self, image_path, rep_dyn_t_max, sigma=1, load_image_at_start=True):
         self.image_path = image_path
         self.image = None
         self.sigma = np.float64(sigma)
         self.sim_matrix = None
+        self.rep_dyn_t_max = rep_dyn_t_max
 
         if load_image_at_start:
             self.load_image()
@@ -31,3 +32,6 @@ class GameTheoreticClusterization:
                 k += 1
 
         self.sim_matrix = sim_matrix.transpose()
+
+    def discrete_replicator_dynamics(self):
+        pass
