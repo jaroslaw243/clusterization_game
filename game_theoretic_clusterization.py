@@ -11,7 +11,6 @@ class GameTheoreticClusterization:
         self.sim_matrix = None
         self.rep_dyn_t_max = rep_dyn_t_max
         self.indices_vec = None
-        self.first_prob_vec = None
         self.prob_in_time = None
         self.max_iter = max_iter
         self.final_seg = None
@@ -38,9 +37,9 @@ class GameTheoreticClusterization:
 
         self.sim_matrix = sim_matrix.transpose()
 
-    def discrete_replicator_dynamics(self):
-        prob_in_time = lil_array((self.rep_dyn_t_max, self.first_prob_vec.shape[1]), dtype=np.float64)
-        prob_in_time[0, :] = lil_array(self.first_prob_vec)
+    def discrete_replicator_dynamics(self, first_prob_vec):
+        prob_in_time = lil_array((self.rep_dyn_t_max, first_prob_vec.shape[1]), dtype=np.float64)
+        prob_in_time[0, :] = lil_array(first_prob_vec)
 
         for i in range(self.rep_dyn_t_max - 1):
             a = self.sim_matrix @ prob_in_time[[i], :].transpose()
@@ -60,24 +59,20 @@ class GameTheoreticClusterization:
         seg = np.zeros((1, q), dtype=np.uint8)
         iter_n = 1
         curr_label = 1
-        all_pixels_to_label = q
-        labeled_pixels = 0
         all_pixels_labeled = False
         while not all_pixels_labeled and iter_n <= self.max_iter:
             q = image_vec.shape[0] * image_vec.shape[1]
             a_init = np.random.uniform(size=(1, q))
             a_init = a_init/np.sum(a_init)
-            self.first_prob_vec = a_init
 
-            self.discrete_replicator_dynamics()
+            self.discrete_replicator_dynamics(a_init)
 
             prob_increase_ind = self.prob_in_time[[1], :] < self.prob_in_time[[-1], :]
             prob_increase_ind = prob_increase_ind.toarray()
+            prob_increase_ind.shape = q
             prob_increase_ind_for_rm = np.logical_not(prob_increase_ind)
             prob_increase_ind_for_rm.shape = q
 
-            image_vec[prob_increase_ind] = np.nan
-            prob_increase_ind.shape = q
             seg[0, indices_vec[prob_increase_ind]] = curr_label
 
             indices_vec = indices_vec[prob_increase_ind_for_rm]
@@ -87,8 +82,7 @@ class GameTheoreticClusterization:
             self.sim_matrix = self.sim_matrix[:, prob_increase_ind_for_rm]
             self.sim_matrix = self.sim_matrix[prob_increase_ind_for_rm, :]
 
-            labeled_pixels += np.sum(np.isnan(image_vec))
-            if labeled_pixels == all_pixels_to_label:
+            if image_vec.size == 0:
                 all_pixels_labeled = True
 
             iter_n += 1
