@@ -6,6 +6,7 @@ venv
 *.jpeg
 *.bmp
 *.yaml
+*.txt
 obrazki_do_testow
 ziemowit
 statistics.py
