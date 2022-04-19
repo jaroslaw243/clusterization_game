@@ -2,15 +2,27 @@ import cv2
 import numpy as np
 from matplotlib import pyplot as plt
 import matplotlib
-import psutil
+import time
 
 from game_theoretic_clusterization import GameTheoreticClusterization
 
 
-clust = GameTheoreticClusterization(image_path='./test_objects.png', rep_dyn_t_max=20, sigma=12)
+clust = GameTheoreticClusterization(image_path='./test_objects.png', rep_dyn_t_max=20, sigma=12,
+                                    use_measure_memory_usage=True)
+
+start_time = time.time()
 clust.clusterization()
-used_ram = psutil.Process().memory_info().rss / (1024 * 1024)
-print(f'Memory used: {used_ram:.1f} MB')
+final_time = time.time() - start_time
+
+sparse_dense_perc = (clust.sim_matrix_size_in_memory / clust.sim_matrix_size_in_memory_if_dense) * 100
+
+if clust.use_measure_memory_usage:
+    print(f'Memory used: {clust.all_memory_used:.1f} MB')
+    print(f'Similarity matrix size: {clust.sim_matrix_size_in_memory:.1f} MB')
+    print(f'Similarity matrix size if it was dense: {clust.sim_matrix_size_in_memory_if_dense:.1f} MB')
+    print(f'Sparse matrix size in memory is {sparse_dense_perc:.1f} % of the equivalent dense matrix')
+
+print(f'Elapsed time: {final_time:.2f} s')
 
 matplotlib.use('TkAgg')
 
