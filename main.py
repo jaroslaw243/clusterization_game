@@ -7,8 +7,8 @@ import time
 from game_theoretic_clusterization import GameTheoreticClusterization
 
 
-clust = GameTheoreticClusterization(image_path='./test_objects.png', rep_dyn_t_max=20, sigma=12,
-                                    use_measure_memory_usage=True)
+clust = GameTheoreticClusterization(image_path='./test_objects.png', rep_dyn_t_max=20, sigma=1, sigma_dist=100,
+                                    cluster_size_thresh_perc=0.01, use_measure_memory_usage=True)
 
 start_time = time.time()
 clust.clusterization()

@@ -6,17 +6,21 @@ import psutil
 
 
 class GameTheoreticClusterization:
-    def __init__(self, image_path, rep_dyn_t_max, sigma=1, max_iter=100, use_measure_memory_usage=False,
-                 load_image_at_start=True):
+    def __init__(self, image_path, rep_dyn_t_max, remove_small_clust_att=10, cluster_size_thresh_perc=0.01, sigma=1,
+                 sigma_dist=1, max_iter=100, use_measure_memory_usage=False, load_image_at_start=True):
         self.image_path = image_path
         self.image = None
         self.sigma = np.float64(sigma)
+        self.sigma_dist = np.float64(sigma_dist)
         self.sim_matrix = None
         self.rep_dyn_t_max = rep_dyn_t_max
         self.indices_vec = None
         self.prob_in_time = None
         self.max_iter = max_iter
         self.final_seg = None
+        self.org_image_dtype = None
+        self.cluster_size_thresh_perc = cluster_size_thresh_perc
+        self.remove_small_clust_att = remove_small_clust_att
         self.sim_matrix_size_in_memory = None
         self.sim_matrix_size_in_memory_if_dense = None
         self.all_memory_used = None
@@ -32,20 +36,32 @@ class GameTheoreticClusterization:
         self.all_memory_used = psutil.Process().memory_info().rss / div_val
 
     def load_image(self):
-        self.image = np.array(cv2.imread(self.image_path, 0), dtype=np.float64)
+        image = cv2.imread(self.image_path, 0)
+        self.org_image_dtype = image.dtype
+        self.image = np.array(image, dtype=np.float64)
 
     def generate_similarity_matrix(self):
         sim_matrix = lil_array((self.image.shape[0] * self.image.shape[1], self.image.shape[0] * self.image.shape[1]),
                                dtype=np.float64)
 
+        ind_mat = np.indices(self.image.shape, dtype=np.float64)
+        max_image_val = np.float64(np.iinfo(self.org_image_dtype).max)
+        max_dist = np.float64(np.sqrt(np.square(self.image.shape[0] - 1) + np.square(self.image.shape[1] - 1)))
         k = 0
         for i in range(self.image.shape[0]):
             for j in range(self.image.shape[1]):
-                result = self.image[i, j] - self.image
-                result = np.exp((np.square(result) * (-1)) / (np.square(self.sigma)))
-                result = np.reshape(result, (1, self.image.shape[0] * self.image.shape[1]))
-                result = lil_array(result)
-                sim_matrix[k, :] = result
+                intensity_term = self.image[i, j] - self.image
+                intensity_term = (np.square(intensity_term) * (-1)) / (np.square(self.sigma))
+
+                distance_term = np.sqrt(np.square(i - ind_mat[0]) + np.square(j - ind_mat[1]))
+                distance_term = (distance_term / max_dist) * max_image_val
+                distance_term = (np.square(distance_term) * (-1)) / (np.square(self.sigma_dist))
+
+                combined_term = np.exp((intensity_term + distance_term) / 2)
+
+                combined_term = np.reshape(combined_term, (1, self.image.shape[0] * self.image.shape[1]))
+                combined_term = lil_array(combined_term)
+                sim_matrix[k, :] = combined_term
                 k += 1
 
         self.sim_matrix = sim_matrix.transpose()
@@ -101,7 +117,22 @@ class GameTheoreticClusterization:
             if image_vec.size == 0:
                 all_pixels_labeled = True
 
+            print(iter_n)
             iter_n += 1
             curr_label += 1
 
         self.final_seg = np.reshape(seg, self.image.shape)
+
+    def merge_small_clusters(self):
+        cluster_kinds, cluster_sizes = np.unique(self.final_seg, return_counts=True)
+        cluster_size_thresh = self.cluster_size_thresh_perc * self.final_seg.size
+        large_cluster_count = np.sum(cluster_sizes > cluster_size_thresh) + 1
+
+        vector_seg = np.array(self.final_seg.flatten(), dtype=np.float32)
+        criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 10, 1.0)
+
+        compactness, labels, centers = cv2.kmeans(vector_seg, large_cluster_count, None, criteria,
+                                                  self.remove_small_clust_att, cv2.KMEANS_RANDOM_CENTERS)
+
+        self.final_seg = np.reshape(labels, self.final_seg.shape)
+
