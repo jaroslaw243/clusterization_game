@@ -117,7 +117,6 @@ class GameTheoreticClusterization:
             if image_vec.size == 0:
                 all_pixels_labeled = True
 
-            print(iter_n)
             iter_n += 1
             curr_label += 1
 
@@ -128,6 +127,13 @@ class GameTheoreticClusterization:
         cluster_kinds, cluster_sizes = np.unique(self.final_seg, return_counts=True)
         cluster_size_thresh = self.cluster_size_thresh_perc * self.final_seg.size
         large_cluster_count = np.sum(cluster_sizes > cluster_size_thresh) + 1
+
+        for clust in cluster_kinds:
+            temp_clust = self.final_seg == clust
+            moments = cv2.moments(np.array(temp_clust, dtype=np.uint8))
+            avg_coor = ((moments["m10"] / moments["m00"]) + (moments["m01"] / moments["m00"]))/2
+
+            self.final_seg[temp_clust] = self.final_seg[temp_clust] * avg_coor
 
         vector_seg = np.array(self.final_seg.flatten(), dtype=np.float32)
         criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 10, 1.0)
