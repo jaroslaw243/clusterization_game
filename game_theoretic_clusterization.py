@@ -51,13 +51,13 @@ class GameTheoreticClusterization:
         for i in range(self.image.shape[0]):
             for j in range(self.image.shape[1]):
                 intensity_term = self.image[i, j] - self.image
-                intensity_term = (np.square(intensity_term) * (-1)) / (np.square(self.sigma))
+                intensity_term = np.exp((np.square(intensity_term) * (-1)) / (np.square(self.sigma)))
 
                 distance_term = np.sqrt(np.square(i - ind_mat[0]) + np.square(j - ind_mat[1]))
                 distance_term = (distance_term / max_dist) * max_image_val
-                distance_term = (np.square(distance_term) * (-1)) / (np.square(self.sigma_dist))
+                distance_term = np.exp((np.square(distance_term) * (-1)) / (np.square(self.sigma_dist)))
 
-                combined_term = np.exp((intensity_term + distance_term) / 2)
+                combined_term = intensity_term + distance_term
 
                 combined_term = np.reshape(combined_term, (1, self.image.shape[0] * self.image.shape[1]))
                 combined_term = lil_array(combined_term)
@@ -122,6 +122,7 @@ class GameTheoreticClusterization:
             curr_label += 1
 
         self.final_seg = np.reshape(seg, self.image.shape)
+        self.merge_small_clusters()
 
     def merge_small_clusters(self):
         cluster_kinds, cluster_sizes = np.unique(self.final_seg, return_counts=True)
@@ -135,4 +136,3 @@ class GameTheoreticClusterization:
                                                   self.remove_small_clust_att, cv2.KMEANS_RANDOM_CENTERS)
 
         self.final_seg = np.reshape(labels, self.final_seg.shape)
-
