@@ -57,7 +57,7 @@ class GameTheoreticClusterization:
                 distance_term = (distance_term / max_dist) * max_image_val
                 distance_term = np.exp((np.square(distance_term) * (-1)) / (np.square(self.sigma_dist)))
 
-                combined_term = intensity_term + distance_term
+                combined_term = intensity_term * distance_term
 
                 combined_term = np.reshape(combined_term, (1, self.image.shape[0] * self.image.shape[1]))
                 combined_term = lil_array(combined_term)
