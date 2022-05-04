@@ -126,19 +126,26 @@ class GameTheoreticClusterization:
     def merge_small_clusters(self):
         cluster_kinds, cluster_sizes = np.unique(self.final_seg, return_counts=True)
         cluster_size_thresh = self.cluster_size_thresh_perc * self.final_seg.size
-        large_cluster_count = np.sum(cluster_sizes > cluster_size_thresh) + 1
+        small_clusters = cluster_kinds[cluster_sizes < cluster_size_thresh]
+        large_clusters = cluster_kinds[cluster_sizes >= cluster_size_thresh]
+        kernel = np.array([[0, 1, 0], [1, 1, 1], [0, 1, 0]], dtype=np.uint8)
 
-        for clust in cluster_kinds:
-            temp_clust = self.final_seg == clust
-            moments = cv2.moments(np.array(temp_clust, dtype=np.uint8))
-            avg_coor = ((moments["m10"] / moments["m00"]) + (moments["m01"] / moments["m00"]))/2
+        avg_colours = []
+        for l_cluster in large_clusters:
+            avg_colours.append(np.mean(self.image[self.final_seg == l_cluster], dtype=np.float64))
+        avg_colours = np.array(avg_colours, dtype=np.float64)
 
-            self.final_seg[temp_clust] = self.final_seg[temp_clust] * avg_coor
+        for s_cluster in small_clusters:
+            cluster_seg = np.array(self.final_seg == s_cluster, dtype=np.uint8)
+            cluster_seg_dil = cv2.dilate(cluster_seg, kernel, iterations=1)
+            cluster_neighborhood = cluster_seg_dil
+            cluster_neighborhood[cluster_seg == cluster_neighborhood] = 0
+            neighbors = np.unique(self.final_seg[cluster_neighborhood])
+            large_neighbors, large_neighbors_inds1, large_neighbors_inds2 = np.intersect1d(neighbors, large_clusters,
+                                                                                           return_indices=True)
 
-        vector_seg = np.array(self.final_seg.flatten(), dtype=np.float32)
-        criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 10, 1.0)
-
-        compactness, labels, centers = cv2.kmeans(vector_seg, large_cluster_count, None, criteria,
-                                                  self.remove_small_clust_att, cv2.KMEANS_RANDOM_CENTERS)
-
-        self.final_seg = np.reshape(labels, self.final_seg.shape)
+            mean_colour = np.mean(self.image[self.final_seg == s_cluster])
+            mean_colour_diff = np.abs(avg_colours[large_neighbors_inds2] - mean_colour)
+            closest_cluster_ind = np.argmin(mean_colour_diff)
+            closest_cluster = large_neighbors[closest_cluster_ind]
+            self.final_seg[self.final_seg == s_cluster] = closest_cluster
