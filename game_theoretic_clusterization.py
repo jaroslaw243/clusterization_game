@@ -144,7 +144,7 @@ class GameTheoreticClusterization:
             large_neighbors, large_neighbors_inds1, large_neighbors_inds2 = np.intersect1d(neighbors, large_clusters,
                                                                                            return_indices=True)
 
-            mean_colour = np.mean(self.image[self.final_seg == s_cluster])
+            mean_colour = np.mean(self.image[self.final_seg == s_cluster], dtype=np.float64)
             mean_colour_diff = np.abs(avg_colours[large_neighbors_inds2] - mean_colour)
             closest_cluster_ind = np.argmin(mean_colour_diff)
             closest_cluster = large_neighbors[closest_cluster_ind]
