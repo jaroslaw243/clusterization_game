@@ -5,9 +5,9 @@ import time
 from game_theoretic_clusterization import GameTheoreticClusterization
 
 
-clust = GameTheoreticClusterization(image_path='./ISIC_0024319.jpg', rep_dyn_t_max=20, sigma=2400, sigma_dist=50000,
+clust = GameTheoreticClusterization(image_path='./ISIC_0024319.jpg', rep_dyn_t_max=20, sigma=24000, sigma_dist=50000,
                                     cluster_size_thresh_perc=0.1, use_measure_memory_usage=True, max_iter=100,
-                                    given_n_final_clusters=3)
+                                    given_n_final_clusters=2)
 
 start_time = time.time()
 clust.clusterization()
