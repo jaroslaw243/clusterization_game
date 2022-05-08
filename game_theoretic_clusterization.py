@@ -6,8 +6,9 @@ import psutil
 
 
 class GameTheoreticClusterization:
-    def __init__(self, image_path, rep_dyn_t_max, remove_small_clust_att=10, cluster_size_thresh_perc=0.01, sigma=1,
-                 sigma_dist=1, max_iter=100, use_measure_memory_usage=False, load_image_at_start=True):
+    def __init__(self, image_path, rep_dyn_t_max, remove_small_clust_att=10, cluster_size_thresh_perc=0.01,
+                 given_n_final_clusters=None, sigma=1, sigma_dist=1, max_iter=100, use_measure_memory_usage=False,
+                 load_image_at_start=True):
         self.image_path = image_path
         self.image = None
         self.sigma = np.float64(sigma)
@@ -21,10 +22,13 @@ class GameTheoreticClusterization:
         self.org_image_dtype = None
         self.cluster_size_thresh_perc = cluster_size_thresh_perc
         self.remove_small_clust_att = remove_small_clust_att
+        self.given_n_final_clusters = given_n_final_clusters
         self.sim_matrix_size_in_memory = None
         self.sim_matrix_size_in_memory_if_dense = None
         self.all_memory_used = None
         self.use_measure_memory_usage = use_measure_memory_usage
+        self.cluster_size_thresh_too_big = False
+        self.final_cluster_count = 0
 
         if load_image_at_start:
             self.load_image()
@@ -125,16 +129,32 @@ class GameTheoreticClusterization:
 
     def merge_small_clusters(self):
         cluster_kinds, cluster_sizes = np.unique(self.final_seg, return_counts=True)
-        cluster_size_thresh = self.cluster_size_thresh_perc * self.final_seg.size
-        small_clusters = cluster_kinds[cluster_sizes < cluster_size_thresh]
-        large_clusters = cluster_kinds[cluster_sizes >= cluster_size_thresh]
-        kernel = np.array([[0, 1, 0], [1, 1, 1], [0, 1, 0]], dtype=np.uint8)
+
+        if self.given_n_final_clusters is None:
+            cluster_size_thresh = self.cluster_size_thresh_perc * self.final_seg.size
+            small_clusters = cluster_kinds[cluster_sizes < cluster_size_thresh]
+            large_clusters = cluster_kinds[cluster_sizes >= cluster_size_thresh]
+
+            if large_clusters.size == 0:
+                largest_cluster_ind = np.argmax(cluster_sizes)
+                large_clusters = np.array(cluster_kinds[largest_cluster_ind], dtype=cluster_kinds.dtype)
+                large_clusters.shape = 1
+                small_clusters = cluster_kinds[cluster_kinds != large_clusters]
+                self.cluster_size_thresh_too_big = True
+        else:
+            if self.given_n_final_clusters <= 0 or not isinstance(self.given_n_final_clusters, int):
+                raise ValueError('"given_n_final_clusters" has to be bigger than 0 and "int" type')
+
+            sorted_cluster_ind = np.argsort(cluster_sizes)
+            large_clusters = cluster_kinds[sorted_cluster_ind[-self.given_n_final_clusters:]]
+            small_clusters = cluster_kinds[sorted_cluster_ind[0:(-self.given_n_final_clusters)]]
 
         avg_colours = []
         for l_cluster in large_clusters:
             avg_colours.append(np.mean(self.image[self.final_seg == l_cluster], dtype=np.float64))
         avg_colours = np.array(avg_colours, dtype=np.float64)
 
+        kernel = np.array([[0, 1, 0], [1, 1, 1], [0, 1, 0]], dtype=np.uint8)
         for s_cluster in small_clusters:
             cluster_seg = np.array(self.final_seg == s_cluster, dtype=np.uint8)
             cluster_seg_dil = cv2.dilate(cluster_seg, kernel, iterations=1)
@@ -149,3 +169,5 @@ class GameTheoreticClusterization:
             closest_cluster_ind = np.argmin(mean_colour_diff)
             closest_cluster = large_neighbors[closest_cluster_ind]
             self.final_seg[self.final_seg == s_cluster] = closest_cluster
+
+        self.final_cluster_count = large_clusters.size

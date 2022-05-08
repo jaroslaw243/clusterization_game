@@ -7,8 +7,9 @@ import time
 from game_theoretic_clusterization import GameTheoreticClusterization
 
 
-clust = GameTheoreticClusterization(image_path='./test_objects.png', rep_dyn_t_max=20, sigma=12, sigma_dist=2000,
-                                    cluster_size_thresh_perc=0.008, use_measure_memory_usage=True, max_iter=100)
+clust = GameTheoreticClusterization(image_path='./ISIC_0024319.jpg', rep_dyn_t_max=20, sigma=1, sigma_dist=2000,
+                                    cluster_size_thresh_perc=0.1, use_measure_memory_usage=True, max_iter=100,
+                                    given_n_final_clusters=3)
 
 start_time = time.time()
 clust.clusterization()
@@ -32,6 +33,6 @@ plt.setp(ax, xticks=[], yticks=[])
 ax[0].imshow(clust.image, cmap='gray')
 ax[0].set_title(f'Original (height: {clust.image.shape[0]}px, width: {clust.image.shape[1]}px)')
 ax[1].imshow(clust.final_seg, cmap='tab20b')
-ax[1].set_title(f'Segmentation ({int(clust.final_seg.max())} clusters)')
+ax[1].set_title(f'Segmentation ({clust.final_cluster_count} clusters)')
 
 plt.show()
