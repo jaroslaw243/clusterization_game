@@ -38,6 +38,7 @@ plt.setp(ax, xticks=[], yticks=[])
 ax[0].imshow(clust.image, cmap='gray')
 ax[0].set_title(f'Original (height: {clust.image.shape[0]}px, width: {clust.image.shape[1]}px)')
 ax[1].imshow(clust.final_seg, cmap='tab20b')
-ax[1].set_title(f'Segmentation ({int(clust.final_seg.max())} clusters)')
+ax[1].set_title(r'Segmentation (%d clusters, $\sigma_{int} = %d, \sigma_{dist} = %d$)' % (clust.final_cluster_count,
+                                                                                          clust.sigma, clust.sigma_dist))
 
 plt.savefig(args.figures_name, bbox_inches='tight', dpi=dpi_for_fig)
