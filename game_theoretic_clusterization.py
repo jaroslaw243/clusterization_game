@@ -29,6 +29,7 @@ class GameTheoreticClusterization:
         self.use_measure_memory_usage = use_measure_memory_usage
         self.cluster_size_thresh_too_big = False
         self.final_cluster_count = 0
+        self.large_cluster_elements_thresh = 0
 
         if load_image_at_start:
             self.load_image()
@@ -132,6 +133,7 @@ class GameTheoreticClusterization:
 
         if self.given_n_final_clusters is None:
             cluster_size_thresh = self.cluster_size_thresh_perc * self.final_seg.size
+            self.large_cluster_elements_thresh = cluster_size_thresh
             small_clusters = cluster_kinds[cluster_sizes < cluster_size_thresh]
             large_clusters = cluster_kinds[cluster_sizes >= cluster_size_thresh]
 

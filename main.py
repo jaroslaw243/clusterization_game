@@ -35,7 +35,8 @@ plt.setp(ax, xticks=[], yticks=[])
 ax[0].imshow(clust.image, cmap='gray')
 ax[0].set_title(f'Original (height: {clust.image.shape[0]}px, width: {clust.image.shape[1]}px)')
 ax[1].imshow(clust.final_seg, cmap='tab20b')
-ax[1].set_title(r'Segmentation (%d clusters, $\sigma_{int} = %d, \sigma_{dist} = %d$)' % (clust.final_cluster_count,
-                                                                                          clust.sigma, clust.sigma_dist))
+title_vals = (clust.final_cluster_count, clust.large_cluster_elements_thresh, clust.sigma, clust.sigma_dist)
+ax[1].set_title(r'Segmentation (%d clusters, large cluster$ \geq %d \mathrm{ \ el},'
+                r' \sigma_{int} = %d, \sigma_{dist} = %d$)' % title_vals)
 
 plt.show()
