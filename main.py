@@ -1,13 +1,17 @@
 from matplotlib import pyplot as plt
 import matplotlib
 import time
+import cv2
 
 from game_theoretic_clusterization import GameTheoreticClusterization
 
 
-clust = GameTheoreticClusterization(image_path='./ISIC_0024319.jpg', rep_dyn_t_max=20, sigma=24000, sigma_dist=50000,
-                                    cluster_size_thresh_perc=0.1, use_measure_memory_usage=True, max_iter=100,
-                                    given_n_final_clusters=2)
+clust = GameTheoreticClusterization(image_path='./cameraman.tif', rep_dyn_t_max=20, sigma=12000, sigma_dist=50000,
+                                    cluster_size_thresh_perc=0.01, use_measure_memory_usage=True, max_iter=100)
+
+scale = 75/clust.image.shape[1]
+new_dim = (int(scale*clust.image.shape[1]), int(scale*clust.image.shape[0]))
+clust.image = cv2.resize(clust.image, new_dim)
 
 start_time = time.time()
 clust.clusterization()

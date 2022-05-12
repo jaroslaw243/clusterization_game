@@ -5,6 +5,8 @@ venv
 *.jpg
 *.jpeg
 *.bmp
+*.tif
+*.tiff
 *.yaml
 *.txt
 obrazki_do_testow
