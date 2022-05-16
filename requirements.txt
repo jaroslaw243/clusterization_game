@@ -1,6 +1,6 @@
 numpy
 opencv-python
 matplotlib
-scipy
+scipy>=1.8.0
 PyYAML
 psutil
