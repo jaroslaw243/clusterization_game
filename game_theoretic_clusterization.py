@@ -8,7 +8,7 @@ import psutil
 class GameTheoreticClusterization:
     def __init__(self, image_path, rep_dyn_t_max, remove_small_clust_att=10, cluster_size_thresh_perc=0.01,
                  given_n_final_clusters=None, sigma=1, sigma_dist=1, max_iter=100, use_measure_memory_usage=False,
-                 load_image_at_start=True):
+                 load_image_at_start=True, img_to_8bit_gr=True):
         self.image_path = image_path
         self.image = None
         self.sigma = np.float64(sigma)
@@ -30,6 +30,7 @@ class GameTheoreticClusterization:
         self.cluster_size_thresh_too_big = False
         self.final_cluster_count = 0
         self.large_cluster_elements_thresh = 0
+        self.img_to_8bit_gr = img_to_8bit_gr
 
         if load_image_at_start:
             self.load_image()
@@ -41,7 +42,11 @@ class GameTheoreticClusterization:
         self.all_memory_used = psutil.Process().memory_info().rss / div_val
 
     def load_image(self):
-        image = cv2.imread(self.image_path, 0)
+        if self.img_to_8bit_gr:
+            image = cv2.imread(self.image_path, 0)
+        else:
+            image = cv2.imread(self.image_path, cv2.IMREAD_ANYDEPTH)
+
         self.org_image_dtype = image.dtype
         self.image = np.array(image, dtype=np.float64)
 
