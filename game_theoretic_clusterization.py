@@ -11,8 +11,8 @@ class GameTheoreticClusterization:
                  load_image_at_start=True, img_to_8bit_gr=True):
         self.image_path = image_path
         self.image = None
-        self.sigma = np.float64(sigma)
-        self.sigma_dist = np.float64(sigma_dist)
+        self.sigma = sigma
+        self.sigma_dist = sigma_dist
         self.sim_matrix = None
         self.rep_dyn_t_max = rep_dyn_t_max
         self.indices_vec = None
@@ -51,6 +51,9 @@ class GameTheoreticClusterization:
         self.image = np.array(image, dtype=np.float64)
 
     def generate_similarity_matrix(self):
+        self.sigma = np.float64(self.sigma)
+        self.sigma_dist = np.float64(self.sigma_dist)
+
         sim_matrix = lil_array((self.image.shape[0] * self.image.shape[1], self.image.shape[0] * self.image.shape[1]),
                                dtype=np.float64)
 
