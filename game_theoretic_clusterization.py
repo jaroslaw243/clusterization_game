@@ -77,8 +77,8 @@ class GameTheoreticClusterization:
                 sim_matrix[k, :] = combined_term
                 k += 1
 
-        sim_matrix = csr_array(sim_matrix)
-        self.sim_matrix = sim_matrix.transpose()
+        sim_matrix = csr_array(sim_matrix, copy=False)
+        self.sim_matrix = sim_matrix.transpose(copy=False)
 
     def discrete_replicator_dynamics(self, first_prob_vec):
         prob_in_time = csr_array((self.rep_dyn_t_max, first_prob_vec.shape[1]), dtype=np.float64)
