@@ -20,9 +20,9 @@ start_time = time.time()
 clust.clusterization()
 final_time = time.time() - start_time
 
-sparse_dense_perc = (clust.sim_matrix_size_in_memory / clust.sim_matrix_size_in_memory_if_dense) * 100
-
 if clust.use_measure_memory_usage:
+    sparse_dense_perc = (clust.sim_matrix_size_in_memory / clust.sim_matrix_size_in_memory_if_dense) * 100
+
     print(f'Memory used: {clust.all_memory_used:.1f} MB')
     print(f'Similarity matrix size: {clust.sim_matrix_size_in_memory:.1f} MB')
     print(f'Similarity matrix size if it was dense: {clust.sim_matrix_size_in_memory_if_dense:.1f} MB')
