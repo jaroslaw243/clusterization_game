@@ -1,5 +1,5 @@
 import numpy as np
-from scipy.sparse import lil_array
+from scipy.sparse import lil_array, csr_array
 import cv2
 from utils import actualsize
 import psutil
@@ -77,11 +77,12 @@ class GameTheoreticClusterization:
                 sim_matrix[k, :] = combined_term
                 k += 1
 
+        sim_matrix = csr_array(sim_matrix)
         self.sim_matrix = sim_matrix.transpose()
 
     def discrete_replicator_dynamics(self, first_prob_vec):
-        prob_in_time = lil_array((self.rep_dyn_t_max, first_prob_vec.shape[1]), dtype=np.float64)
-        prob_in_time[0, :] = lil_array(first_prob_vec)
+        prob_in_time = csr_array((self.rep_dyn_t_max, first_prob_vec.shape[1]), dtype=np.float64)
+        prob_in_time[0, :] = csr_array(first_prob_vec)
 
         for i in range(self.rep_dyn_t_max - 1):
             a = self.sim_matrix @ prob_in_time[[i], :].transpose()
@@ -96,7 +97,10 @@ class GameTheoreticClusterization:
         image_vec = np.reshape(np.transpose(self.image), (1, q))
         indices_vec = np.arange(stop=q, dtype=int)
 
+        print('Started generating similarity matrix...')
         self.generate_similarity_matrix()
+        print('Finished generating similarity matrix...')
+        print('Started clusterization...')
 
         if self.use_measure_memory_usage:
             self.measure_memory_usage()
@@ -134,6 +138,8 @@ class GameTheoreticClusterization:
             curr_label += 1
 
         self.final_seg = np.reshape(seg, self.image.shape)
+        print('Finished clusterization...')
+
         self.merge_small_clusters()
 
     def merge_small_clusters(self):
