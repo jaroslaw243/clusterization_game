@@ -9,4 +9,4 @@ M. Pavan, M. Pelillo. *Dominant sets and pairwise clustering*. IEEE transactions
 S. Bulò. *A game-theoretic framework for similarity-based data clustering*. PhD thesis, University of Venice, 2009.
 
 <a id="3">[3]</a>
-M. Pavan, M. Pelillo. *A new graph-theoretic approach to clustering and segmentation*, 2003 IEEE Computer Society Conference on Computer Vision and Pattern Recognition, 2003.
+M. Pavan, M. Pelillo. *A new graph-theoretic approach to clustering and segmentation*. 2003 IEEE Computer Society Conference on Computer Vision and Pattern Recognition, 2003.
